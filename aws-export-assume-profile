@@ -1,0 +1,251 @@
+#!/usr/bin/env bash
+
+# Be strict
+set -e
+set -u
+set -o pipefail
+
+
+# --------------------------------------------------------------------------------
+# VARIABLES
+# --------------------------------------------------------------------------------
+
+###
+### User input
+###
+PROFILE="${1:-default}"
+CONFIG="${2:-${HOME}/.aws/config}"
+
+
+###
+### Will be populated from AWS profile
+###
+ROLE_ARN=
+SOURCE_PROFILE=
+REGION=
+
+
+# --------------------------------------------------------------------------------
+# FUNCTIONS
+# --------------------------------------------------------------------------------
+
+###
+### Return bash compatible unsets to remove AWS env variables
+###
+function unset_environment {
+    echo "unset AWS_ACCESS_KEY_ID"
+    echo "unset AWS_ACCESS_KEY"
+    echo "unset AWS_SECRET_ACCESS_KEY"
+    echo "unset AWS_SECRET_KEY"
+    echo "unset AWS_SESSION_TOKEN"
+    echo "unset AWS_DELEGATION_TOKEN"
+    echo "unset AWS_SECURITY_TOKEN"
+    echo "unset AWS_REGION"
+}
+
+
+###
+### Extract value from aws sts assume-role JSON output
+###
+### @param   str  sts-assume-role JSON output
+### @param   key  JSON key to get value for
+### @outputs      value for JSON key
+###
+function json_get_key {
+	local str="${1}"
+	local key="${2}"
+
+	echo "${str}" \
+		| grep "\"${key}\"" \
+		| awk -F':' '{print $2}' \
+		| awk -F'"' '{print $2}'
+}
+
+
+###
+### Extract AWS profile information
+###
+### @param   config  Path to .aws/config
+### @param   profile Name of AWS boto profile
+### @returns         Success if profile was found, otherwise failure
+###
+function extract_aws_profile {
+	local config="${1}"
+	local profile="${2}"
+
+	local regex_profile_start="^[[:space:]]*\[[[:space:]]*profile[[:space:]][[:space:]]*${profile}[[:space:]]*\]\$"
+	local regex_profile_end="^[[:space:]]*\["
+	local start=0
+	local end=0
+
+	if [ "${profile}" = "default" ]; then
+		regex_profile_start="^[[:space:]]*\[[[:space:]]*default[[:space:]]*\]\$"
+	fi
+
+	while read -r line; do
+		# Find the start of the profile
+		if [[ "${line}" =~ ${regex_profile_start} ]]; then
+			start=1
+			continue
+		fi
+		# Find the end of the profile
+		if [ "${start}" -eq "1" ]; then
+			if [[ "${line}" =~ ${regex_profile_end} ]]; then
+				end=1
+				break
+			fi
+		fi
+		# In profile
+		if [ "${start}" -eq "1" ] && [ "${end}" -eq "0" ]; then
+			# Get RoleArn
+			if [[ "${line}" =~ ^[[:space:]]*role_arn[[:space:]]*= ]]; then
+				ROLE_ARN="${line#*=}"
+			fi
+			# Get Source Profile
+			if [[ "${line}" =~ ^[[:space:]]*source_profile[[:space:]]*= ]]; then
+				SOURCE_PROFILE="${line#*=}"
+			fi
+			# Get Region
+			if [[ "${line}" =~ ^[[:space:]]*region[[:space:]]*= ]]; then
+				REGION="${line#*=}"
+			fi
+		fi
+	done < "${config}"
+
+	# Return 1 if no profile was found
+	if [ "${start}" -eq "0" ]; then
+		return 1
+	fi
+}
+
+
+# --------------------------------------------------------------------------------
+# ENTRYPOINT
+# --------------------------------------------------------------------------------
+
+###
+### Evalute user input
+###
+if [ "${#}" -gt "0" ]; then
+	case "${1}" in
+		-u|--unset)
+			unset_environment
+			exit 0
+			;;
+
+		-v|--version)
+			cat << EOF
+aws-export-assume-profile v0.1
+EOF
+			exit 0
+			;;
+
+		-h|--help)
+			cat << EOF
+Usage: aws-export-assume-profile [profile] [config]
+       aws-export-assume-profile --unset, -u
+       aws-export-assume-profile --help, -h
+       aws-export-assume-profile --version, -v
+
+This bash helper will output AWS export statements of your chosen aws boto profile.
+Wrap this script in \$(aws-export-assume-profile) to export those environment variables.
+
+Optional parameter:
+    [profile]      Boto profile name to export. Default is 'default'
+    [config]       Path to your aws config file.
+                   If no config file is found, AWS_REGION export will not be available.
+                   Default is ~/.aws/config
+
+Arguments:
+    --unset, -u    Unset currently set AWS variables from env
+    --help, -h     Show this help screen
+    --version, -v  Show version
+
+
+Available exports:
+    AWS_ACCESS_KEY_ID
+    AWS_ACCESS_KEY
+    AWS_SECRET_ACCESS_KEY
+    AWS_SECRET_KEY
+    AWS_SESSION_TOKEN
+	AWS_DELEGATION_TOKEN
+	AWS_SECURITY_TOKEN (unset only)
+    AWS_REGION
+
+Examples to show output:
+    aws-export-assume-profile testing
+    aws-export-assume-profile production /jenkins/aws/config
+
+Examples to export:
+    \$(aws-export-assume-profile testing)
+    \$(aws-export-assume-profile production /jenkins/aws/config)
+
+Examples to unset all AWS variables
+    \$(aws-export-assume-profile -u)
+
+MIT License
+Copyright (c) 2019 cytopia
+EOF
+			exit 0
+			;;
+
+		*)
+	esac
+fi
+
+
+###
+### Pre-flight check
+###
+if ! command -v aws >/dev/null 2>&1; then
+	>&2 echo "Error, aws binary not found but required"
+	exit 1
+fi
+
+
+###
+### Extract and populate profile variables
+###
+if ! extract_aws_profile "${CONFIG}" "${PROFILE}"; then
+	>&2 echo "Error, profile '${PROFILE}' not found in: ${CONFIG}"
+	exit 1
+fi
+
+
+###
+### Retrieve credentials from AWS for profile
+###
+OUTPUT="$(
+	aws sts assume-role \
+		--profile "${SOURCE_PROFILE}" \
+		--role-arn "${ROLE_ARN}" \
+		--role-session-name "${PROFILE}"
+)"
+
+
+###
+### Extract credentials
+###
+AWS_SECRET_ACCESS_KEY="$( json_get_key "${OUTPUT}" "SecretAccessKey" )"
+AWS_ACCESS_KEY="$( json_get_key "${OUTPUT}" "AccessKeyId" )"
+AWS_SESSION_TOKEN="$( json_get_key "${OUTPUT}" "SessionToken" )"
+
+
+###
+### Set credentials
+###
+if [ -n "${AWS_SECRET_ACCESS_KEY}" ]; then
+	echo "export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}"
+	echo "export AWS_SECRET_KEY=${AWS_SECRET_ACCESS_KEY}"
+fi
+if [ -n "${AWS_ACCESS_KEY}" ]; then
+	echo "export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY}"
+	echo "export AWS_ACCESS_KEY=${AWS_ACCESS_KEY}"
+fi
+if [ -n "${AWS_SESSION_TOKEN}" ]; then
+	echo "export AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}"
+	echo "export AWS_DELEGATION_TOKEN=${AWS_SESSION_TOKEN}"
+fi
+if [ -n "${REGION}" ]; then
+	echo "export AWS_REGION=${REGION}"
+fi
