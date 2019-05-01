@@ -61,7 +61,7 @@ export AWS_REGION="eu-central-1"
 #### Boto profile `testing` with custom paths
 
 ```bash
-user> aws-export-assume-profile deploy /jenkins/aws/credentials /jenkins/aws/config
+user> aws-export-assume-profile deploy /jenkins/aws/config
 
 export AWS_ACCESS_KEY_ID="XXXXXXXXXXXXXXXXXXXX"
 export AWS_ACCESS_KEY="XXXXXXXXXXXXXXXXXXXX"
@@ -144,7 +144,7 @@ Examples to export:
     $(aws-export-assume-profile production /jenkins/aws/config)
 
 Examples to unset all AWS variables
-    \$(aws-export-assume-profile -u)
+    $(aws-export-assume-profile -u)
 ```
 
 ## License
