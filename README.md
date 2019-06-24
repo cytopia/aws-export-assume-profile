@@ -1,20 +1,20 @@
 # aws-export-assume-profile
 
-`aws-export-assume-profile` is a bash script that will output AWS export statements of your chosen aws boto profile. In case you have to manage multiple AWS accounts that rely on different boto profiles, you can *activate* a chosen profile by making it available in your shell environment.
+`aws-export-assume-profile` is a bash script that will output AWS export statements of your chosen aws profile. In case you have to manage multiple AWS accounts that rely on different profiles, you can *activate* a chosen profile by making it available in your shell environment.
 
-This tool requires `aws` cli and retrieves credentials via `aws sts assume-role`. If you are looking for a way to export boto profiles already present in `~/.aws/credentials` have a look at **[aws-export-profile](https://github.com/cytopia/aws-export-profile)**.
+This tool requires `aws` cli and retrieves credentials via `aws sts assume-role`. If you are looking for a way to export profiles already present in `~/.aws/credentials` have a look at **[aws-export-profile](https://github.com/cytopia/aws-export-profile)**.
 
 [![Build Status](https://travis-ci.org/cytopia/aws-export-assume-profile.svg?branch=master)](https://travis-ci.org/cytopia/aws-export-assume-profile)
 ![Release](https://img.shields.io/github/release/cytopia/aws-export-assume-profile.svg)
 
-**Note:** Wrap the command in **`$(aws-export-assume-profile)`** to actually export your boto environment variables.
+**Note:** Wrap the command in **`$(aws-export-assume-profile)`** to actually export your profiled environment variables.
 
 
 ## But why?
 
-Most AWS related tools support boto profiles out of the box, such as the `aws-cli` (Example: `aws ec2 --profile <BOTO_PROFILE>`). However sometimes it is required to have your chosen boto profile available as shell variables. One of the use cases is when you use Docker and want a specific boto login available inside your container.:
+Most AWS related tools support profiles out of the box, such as the `aws-cli` (Example: `aws ec2 --profile <AWS_PROFILE>`). However sometimes it is required to have your chosen aws profile available as shell variables. One of the use cases is when you use Docker and want a specific login available inside your container.:
 ```bash
-# Export staging boto profile
+# Export staging aws profile
 user> $(aws-export-assume-profile staging)
 
 # Make AWS login available inside your Docker container
@@ -46,7 +46,7 @@ The following export variables are currently supported.
 
 This tool simply output the exports to stdout. In order to auto-source them, wrap the command in **`$(...)`**.
 
-#### Boto profile `testing`
+#### AWS profile `testing`
 
 ```bash
 user> aws-export-assume-profile testing
@@ -58,7 +58,7 @@ export AWS_SECRET_KEY="A1Bc/XXXXXXXXXXXXXXXXXXXXXXXXXXX"
 export AWS_REGION="eu-central-1"
 ```
 
-#### Boto profile `testing` with custom paths
+#### AWS profile `testing` with custom paths
 
 ```bash
 user> aws-export-assume-profile deploy /jenkins/aws/config
@@ -70,7 +70,7 @@ export AWS_SECRET_KEY="A1Bc/XXXXXXXXXXXXXXXXXXXXXXXXXXX"
 export AWS_REGION="eu-central-1"
 ```
 
-#### Boto profile `production` with more exports
+#### AWS profile `production` with more exports
 ```bash
 user> aws-export-assume-profile production
 
@@ -82,7 +82,7 @@ export AWS_SESSION_TOKEN="XXXXXXXXXXXXXXXXx/XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX/XXXXX
 export AWS_REGION="eu-central-1"
 ```
 
-#### Export boto profile `production`
+#### Export AWS profile `production`
 ```bash
 user> $(aws-export-assume-profile production)
 
@@ -111,11 +111,11 @@ Usage: aws-export-assume-profile [profile] [config]
        aws-export-assume-profile --help|-h
        aws-export-assume-profile --version|-v
 
-This bash helper will output AWS export statements of your chosen aws boto profile.
+This bash helper will output AWS export statements of your chosen aws profile.
 Wrap this script in $(aws-export-assume-profile) to export those environment variables.
 
 Optional parameter:
-    [profile]      Boto profile name to export. Default is 'default'
+    [profile]      AWS profile name to export. Default is 'default'
     [config]       Path to your aws config file.
                    If no config file is found, AWS_REGION export will not be available.
                    Default is ~/.aws/config

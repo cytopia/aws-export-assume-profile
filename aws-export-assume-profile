@@ -23,6 +23,7 @@ CREDENTIALS="${3:-${HOME}/.aws/credentials}"
 ###
 ROLE_ARN=
 REGION=
+DURATION_SECONDS=3600
 
 
 # --------------------------------------------------------------------------------
@@ -115,6 +116,10 @@ for file in ${config} ${credentials}
       if [[ "${line}" =~ ^[[:space:]]*region[[:space:]]*= ]]; then
         REGION="${line#*=}"
       fi
+			# Get Login duration
+			if [[ "${line}" =~ ^[[:space:]]*duration_seconds[[:space:]]*= ]]; then
+				DURATION_SECONDS="${line#*=}"
+			fi
     fi
   done < "${file}"
 done
@@ -123,6 +128,7 @@ done
   if [ "${start}" -eq "0" ]; then
     return 1
   fi
+
 }
 
 
@@ -154,11 +160,11 @@ Usage: aws-export-assume-profile [profile] [config]
        aws-export-assume-profile --help, -h
        aws-export-assume-profile --version, -v
 
-This bash helper will output AWS export statements of your chosen aws boto profile.
+This bash helper will output AWS export statements of your chosen aws profile.
 Wrap this script in \$(aws-export-assume-profile) to export those environment variables.
 
 Optional parameter:
-    [profile]      Boto profile name to export. Default is 'default'
+    [profile]      AWS profile name to export. Default is 'default'
     [config]       Path to your aws config file.
                    If no config file is found, AWS_REGION export will not be available.
                    Default is ~/.aws/config
@@ -227,6 +233,7 @@ OUTPUT="$(
   aws sts assume-role \
     --profile "${PROFILE}" \
     --role-arn "${ROLE_ARN}" \
+		--duration-seconds "${DURATION_SECONDS}" \
     --role-session-name "${USER}-$(basename $0)-${PROFILE}"
 )"
 
