@@ -110,8 +110,8 @@ user> $(aws-export-assume-profile -u)
 ```bash
 Usage: aws-export-assume-profile [profile] [config]
        aws-export-assume-profile --unset, -u
-       aws-export-assume-profile --help|-h
-       aws-export-assume-profile --version|-v
+       aws-export-assume-profile --help, -h
+       aws-export-assume-profile --version, -v
 
 This bash helper will output AWS export statements of your chosen aws profile.
 Wrap this script in $(aws-export-assume-profile) to export those environment variables.
@@ -147,6 +147,10 @@ Examples to export:
 
 Examples to unset all AWS variables
     $(aws-export-assume-profile -u)
+
+MIT License
+Copyright (c) 2019 cytopia
+https://github.com/cytopia/aws-export-assume-profile
 ```
 
 ## License
