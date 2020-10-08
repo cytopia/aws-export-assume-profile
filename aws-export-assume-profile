@@ -13,7 +13,7 @@ set -o pipefail
 ###
 ###
 ###
-APP_VERSION="v0.2"
+APP_VERSION="v0.3"
 APP_DATE="2020-10-08"
 APP_NAME="aws-export-assume-profile"
 
@@ -78,7 +78,7 @@ function json_get_key {
 ### @param   config  Path to .aws/config
 ### @param   profile Name of AWS profile
 ### @param   credentials Path to .aws/credentials
-### @returns         Success if profile was found, otherwise failure
+### @returns Success if profile was found, otherwise failure
 ###
 function extract_aws_profile {
     local config="${1}"
@@ -102,7 +102,7 @@ function extract_aws_profile {
                 start=1
                 continue
             fi
-            if echo "${line}" | grep -q  "${regex_cred_start}"; then
+            if echo "${line}" | grep -q "${regex_cred_start}"; then
                 start=1
                 continue
             fi
@@ -239,7 +239,7 @@ OUTPUT="$(
     aws sts assume-role \
         --profile "${PROFILE}" \
         --role-arn "${ROLE_ARN}" \
-		--duration-seconds "${DURATION_SECONDS}" \
+        --duration-seconds "${DURATION_SECONDS}" \
         --role-session-name "${USER}-$(basename "${0}")-${PROFILE}"
 )"
 
