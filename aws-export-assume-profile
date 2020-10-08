@@ -11,6 +11,14 @@ set -o pipefail
 # --------------------------------------------------------------------------------
 
 ###
+###
+###
+APP_VERSION="v0.2"
+APP_DATE="2020-10-08"
+APP_NAME="aws-export-assume-profile"
+
+
+###
 ### User input
 ###
 PROFILE="${1:-default}"
@@ -42,7 +50,7 @@ function unset_environment {
     echo "unset AWS_DELEGATION_TOKEN"
     echo "unset AWS_SECURITY_TOKEN"
     echo "unset AWS_EXPIRATION"
-    echo "unset AWS_REGION"
+    echo "unset AWS_DEFAULT_REGION"
 }
 
 
@@ -54,13 +62,13 @@ function unset_environment {
 ### @outputs      value for JSON key
 ###
 function json_get_key {
-  local str="${1}"
-  local key="${2}"
+    local str="${1}"
+    local key="${2}"
 
-  echo "${str}" \
-    | grep "\"${key}\"" \
-    | awk -F':' '{print $2}' \
-    | awk -F'"' '{print $2}'
+    echo "${str}" \
+        | grep "\"${key}\"" \
+        | awk -F':' '{print $2}' \
+        | awk -F'"' '{print $2}'
 }
 
 
@@ -68,67 +76,65 @@ function json_get_key {
 ### Extract AWS profile information
 ###
 ### @param   config  Path to .aws/config
-### @param   profile Name of AWS boto profile
+### @param   profile Name of AWS profile
 ### @param   credentials Path to .aws/credentials
 ### @returns         Success if profile was found, otherwise failure
 ###
 function extract_aws_profile {
-  local config="${1}"
-  local profile="${2}"
-  local credentials="${3}"
+    local config="${1}"
+    local profile="${2}"
+    local credentials="${3}"
 
-  local regex_cred_start="^[[:space:]]*\[[[:space:]]*${profile}[[:space:]]*\]\$"
-  local regex_profile_start="^[[:space:]]*\[[[:space:]]*profile[[:space:]][[:space:]]*${profile}[[:space:]]*\]\$"
-  local regex_profile_end="^[[:space:]]*\["
-  local start=0
-  local end=0
+    local regex_cred_start="^[[:space:]]*\[[[:space:]]*${profile}[[:space:]]*\]\$"
+    local regex_profile_start="^[[:space:]]*\[[[:space:]]*profile[[:space:]][[:space:]]*${profile}[[:space:]]*\]\$"
+    local regex_profile_end="^[[:space:]]*\["
+    local start=0
+    local end=0
 
-  if [ "${profile}" = "default" ]; then
-    regex_profile_start="^[[:space:]]*\[[[:space:]]*default[[:space:]]*\]\$"
-  fi
-
-for file in ${config} ${credentials}
- do
-  while read -r line; do
-    # Find the start of the profile
-    if echo "${line}" | grep -q  "${regex_profile_start}"; then
-      start=1
-      continue
+    if [ "${profile}" = "default" ]; then
+        regex_profile_start="^[[:space:]]*\[[[:space:]]*default[[:space:]]*\]\$"
     fi
-    if echo "${line}" | grep -q  "${regex_cred_start}"; then
-      start=1
-      continue
-    fi
-    # Find the end of the profile
-    if [ "${start}" -eq "1" ]; then
-      if echo "${line}" | grep -q  "${regex_profile_end}"; then
-        end=1
-        break
-      fi
-    fi
-    # In profile
-    if [ "${start}" -eq "1" ] && [ "${end}" -eq "0" ]; then
-      # Get RoleArn
-      if [[ "${line}" =~ ^[[:space:]]*role_arn[[:space:]]*= ]]; then
-        ROLE_ARN="${line#*=}"
-      fi
-      # Get Region
-      if [[ "${line}" =~ ^[[:space:]]*region[[:space:]]*= ]]; then
-        REGION="${line#*=}"
-      fi
-			# Get Login duration
-			if [[ "${line}" =~ ^[[:space:]]*duration_seconds[[:space:]]*= ]]; then
-				DURATION_SECONDS="${line#*=}"
-			fi
-    fi
-  done < "${file}"
-done
 
-  # Return 1 if no profile was found
-  if [ "${start}" -eq "0" ]; then
-    return 1
-  fi
+    for file in ${config} ${credentials}; do
+        while read -r line; do
+            # Find the start of the profile
+            if echo "${line}" | grep -q "${regex_profile_start}"; then
+                start=1
+                continue
+            fi
+            if echo "${line}" | grep -q  "${regex_cred_start}"; then
+                start=1
+                continue
+            fi
+            # Find the end of the profile
+            if [ "${start}" -eq "1" ]; then
+                if echo "${line}" | grep -q "${regex_profile_end}"; then
+                    end=1
+                    break
+                fi
+            fi
+            # In profile
+            if [ "${start}" -eq "1" ] && [ "${end}" -eq "0" ]; then
+                # Get RoleArn
+                if [[ "${line}" =~ ^[[:space:]]*role_arn[[:space:]]*= ]]; then
+                    ROLE_ARN="${line#*=}"
+                fi
+                # Get Region
+                if [[ "${line}" =~ ^[[:space:]]*region[[:space:]]*= ]]; then
+                    REGION="${line#*=}"
+                fi
+                # Get Login duration
+                if [[ "${line}" =~ ^[[:space:]]*duration_seconds[[:space:]]*= ]]; then
+                    DURATION_SECONDS="${line#*=}"
+                fi
+            fi
+        done < "${file}"
+    done
 
+    # Return 1 if no profile was found
+    if [ "${start}" -eq "0" ]; then
+        return 1
+    fi
 }
 
 
@@ -140,40 +146,39 @@ done
 ### Evalute user input
 ###
 if [ "${#}" -gt "0" ]; then
-  case "${1}" in
-    -u|--unset)
-      unset_environment
-      exit 0
-      ;;
+    case "${1}" in
+        -u|--unset)
+            unset_environment
+            exit 0
+            ;;
 
-    -v|--version)
-      cat << EOF
-aws-export-assume-profile v0.1
+        -v|--version)
+            cat << EOF
+${APP_NAME}: Version ${APP_VERSION} (${APP_DATE})
 EOF
-      exit 0
-      ;;
+            exit 0
+            ;;
 
-    -h|--help)
-      cat << EOF
-Usage: aws-export-assume-profile [profile] [config]
-       aws-export-assume-profile --unset, -u
-       aws-export-assume-profile --help, -h
-       aws-export-assume-profile --version, -v
+        -h|--help)
+            cat << EOF
+Usage: ${APP_NAME} [profile] [config]
+       ${APP_NAME} --unset, -u
+       ${APP_NAME} --help, -h
+       ${APP_NAME} --version, -v
 
 This bash helper will output AWS export statements of your chosen aws profile.
-Wrap this script in \$(aws-export-assume-profile) to export those environment variables.
+Wrap this script in \$(${APP_NAME}) to export those environment variables.
 
 Optional parameter:
     [profile]      AWS profile name to export. Default is 'default'
     [config]       Path to your aws config file.
-                   If no config file is found, AWS_REGION export will not be available.
+                   If no config file is found, AWS_DEFAULT_REGION export will not be available.
                    Default is ~/.aws/config
 
 Arguments:
     --unset, -u    Unset currently set AWS variables from env
     --help, -h     Show this help screen
     --version, -v  Show version
-
 
 Available exports:
     AWS_ACCESS_KEY_ID
@@ -184,27 +189,28 @@ Available exports:
     AWS_DELEGATION_TOKEN
     AWS_SECURITY_TOKEN (unset only)
     AWS_EXPIRATION
-    AWS_REGION
+    AWS_DEFAULT_REGION
 
 Examples to show output:
-    aws-export-assume-profile testing
-    aws-export-assume-profile production /jenkins/aws/config
+    ${APP_NAME} testing
+    ${APP_NAME} production /jenkins/aws/config
 
 Examples to export:
-    \$(aws-export-assume-profile testing)
-    \$(aws-export-assume-profile production /jenkins/aws/config)
+    \$(${APP_NAME} testing)
+    \$(${APP_NAME} production /jenkins/aws/config)
 
 Examples to unset all AWS variables
-    \$(aws-export-assume-profile -u)
+    \$(${APP_NAME} -u)
 
 MIT License
 Copyright (c) 2019 cytopia
+https://github.com/cytopia/aws-export-assume-profile
 EOF
-      exit 0
-      ;;
+            exit 0
+            ;;
 
-    *)
-  esac
+        *)
+    esac
 fi
 
 
@@ -212,8 +218,8 @@ fi
 ### Pre-flight check
 ###
 if ! command -v aws >/dev/null 2>&1; then
-  >&2 echo "Error, aws binary not found but required"
-  exit 1
+    >&2 echo "Error, aws binary not found but required"
+    exit 1
 fi
 
 
@@ -221,8 +227,8 @@ fi
 ### Extract and populate profile variables
 ###
 if ! extract_aws_profile "${CONFIG}" "${PROFILE}" "${CREDENTIALS}"; then
-  >&2 echo "Error, profile '${PROFILE}' not found in: ${CONFIG} or ${CREDENTIALS}"
-  exit 1
+    >&2 echo "Error, profile '${PROFILE}' not found in: ${CONFIG} or ${CREDENTIALS}"
+    exit 1
 fi
 
 
@@ -230,11 +236,11 @@ fi
 ### Retrieve credentials from AWS for profile
 ###
 OUTPUT="$(
-  aws sts assume-role \
-    --profile "${PROFILE}" \
-    --role-arn "${ROLE_ARN}" \
+    aws sts assume-role \
+        --profile "${PROFILE}" \
+        --role-arn "${ROLE_ARN}" \
 		--duration-seconds "${DURATION_SECONDS}" \
-    --role-session-name "${USER}-$(basename $0)-${PROFILE}"
+        --role-session-name "${USER}-$(basename "${0}")-${PROFILE}"
 )"
 
 
@@ -251,20 +257,20 @@ AWS_EXPIRATION="$( json_get_key "${OUTPUT}" "Expiration" )"
 ### Set credentials
 ###
 if [ -n "${AWS_SECRET_ACCESS_KEY}" ]; then
-  echo "export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}"
-  echo "export AWS_SECRET_KEY=${AWS_SECRET_ACCESS_KEY}"
+    echo "export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}"
+    echo "export AWS_SECRET_KEY=${AWS_SECRET_ACCESS_KEY}"
 fi
 if [ -n "${AWS_ACCESS_KEY}" ]; then
-  echo "export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY}"
-  echo "export AWS_ACCESS_KEY=${AWS_ACCESS_KEY}"
+    echo "export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY}"
+    echo "export AWS_ACCESS_KEY=${AWS_ACCESS_KEY}"
 fi
 if [ -n "${AWS_SESSION_TOKEN}" ]; then
-  echo "export AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}"
-  echo "export AWS_DELEGATION_TOKEN=${AWS_SESSION_TOKEN}"
+    echo "export AWS_SESSION_TOKEN=${AWS_SESSION_TOKEN}"
+    echo "export AWS_DELEGATION_TOKEN=${AWS_SESSION_TOKEN}"
 fi
 if [ -n "${AWS_EXPIRATION}" ]; then
-  echo "export AWS_EXPIRATION=${AWS_EXPIRATION}"
+    echo "export AWS_EXPIRATION=${AWS_EXPIRATION}"
 fi
 if [ -n "${REGION}" ]; then
-  echo "export AWS_REGION=${REGION}"
+    echo "export AWS_DEFAULT_REGION=${REGION}"
 fi

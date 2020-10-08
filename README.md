@@ -4,7 +4,7 @@
 
 This tool requires `aws` cli and retrieves credentials via `aws sts assume-role`. If you are looking for a way to export profiles already present in `~/.aws/credentials` have a look at **[aws-export-profile](https://github.com/cytopia/aws-export-profile)**.
 
-[![Build Status](https://travis-ci.org/cytopia/aws-export-assume-profile.svg?branch=master)](https://travis-ci.org/cytopia/aws-export-assume-profile)
+[![Build Status](https://github.com/cytopia/aws-export-assume-profile/workflows/linting/badge.svg)](https://github.com/cytopia/aws-export-assume-profile/actions?workflow=linting)
 ![Release](https://img.shields.io/github/release/cytopia/aws-export-assume-profile.svg)
 
 **Note:** Wrap the command in **`$(aws-export-assume-profile)`** to actually export your profiled environment variables.
@@ -21,7 +21,7 @@ user> $(aws-export-assume-profile staging)
 user> docker run --rm -it \
   --env AWS_ACCESS_KEY_ID=$AWS_ACCESS_KEY_ID \
   --env AWS_SECRET_ACCESS_KEY=$AWS_SECRET_ACCESS_KEY \
-  --env AWS_REGION=$AWS_REGION \
+  --env AWS_DEFAULT_REGION=$AWS_DEFAULT_REGION \
   my-aws-docker
 ```
 
@@ -39,7 +39,9 @@ The following export variables are currently supported.
 | `AWS_SESSION_TOKEN`    | Session token |
 | `AWS_DELEGATION_TOKEN` | Alternative name for `AWS_SESSION_TOKEN` |
 | `AWS_SECURITY_TOKEN`   | Secret token (unset only) |
-| `AWS_REGION`           | Region |
+| `AWS_DEFAULT_REGION`   | Region |
+
+> https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html
 
 
 ## Examples
@@ -55,7 +57,7 @@ export AWS_ACCESS_KEY_ID="XXXXXXXXXXXXXXXXXXXX"
 export AWS_ACCESS_KEY="XXXXXXXXXXXXXXXXXXXX"
 export AWS_SECRET_ACCESS_KEY="A1Bc/XXXXXXXXXXXXXXXXXXXXXXXXXXX"
 export AWS_SECRET_KEY="A1Bc/XXXXXXXXXXXXXXXXXXXXXXXXXXX"
-export AWS_REGION="eu-central-1"
+export AWS_DEFAULT_REGION="eu-central-1"
 ```
 
 #### AWS profile `testing` with custom paths
@@ -67,7 +69,7 @@ export AWS_ACCESS_KEY_ID="XXXXXXXXXXXXXXXXXXXX"
 export AWS_ACCESS_KEY="XXXXXXXXXXXXXXXXXXXX"
 export AWS_SECRET_ACCESS_KEY="A1Bc/XXXXXXXXXXXXXXXXXXXXXXXXXXX"
 export AWS_SECRET_KEY="A1Bc/XXXXXXXXXXXXXXXXXXXXXXXXXXX"
-export AWS_REGION="eu-central-1"
+export AWS_DEFAULT_REGION="eu-central-1"
 ```
 
 #### AWS profile `production` with more exports
@@ -79,7 +81,7 @@ export AWS_ACCESS_KEY="XXXXXXXXXXXXXXXXXXXX"
 export AWS_SECRET_ACCESS_KEY="A1Bc/XXXXXXXXXXXXXXXXXXXXXXXXXXX"
 export AWS_SECRET_KEY="A1Bc/XXXXXXXXXXXXXXXXXXXXXXXXXXX"
 export AWS_SESSION_TOKEN="XXXXXXXXXXXXXXXXx/XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXX/XXXXXXXXXXXXXXXXXXX/XXXXXXXXXXXX="
-export AWS_REGION="eu-central-1"
+export AWS_DEFAULT_REGION="eu-central-1"
 ```
 
 #### Export AWS profile `production`
@@ -94,7 +96,7 @@ AWS_ACCESS_KEY="XXXXXXXXXXXXXXXXXXXX"
 AWS_SECRET_ACCESS_KEY="A1Bc/XXXXXXXXXXXXXXXXXXXXXXXXXXX"
 AWS_SECRET_KEY="A1Bc/XXXXXXXXXXXXXXXXXXXXXXXXXXX"
 AWS_SESSION_TOKEN="XXXXXXXXXXXXXXXXx/XXXXXXXXXXXXXXXXXXXXXXXXXXXXXX/XXXXXXXXXXXXXXXXXXXXXXXX/XXXXXXXXXXXXXXXXXXX/XXXXXXXXXXXX="
-AWS_REGION="eu-central-1"
+AWS_DEFAULT_REGION="eu-central-1"
 ```
 
 #### Unset all AWS_ variables
@@ -108,8 +110,8 @@ user> $(aws-export-assume-profile -u)
 ```bash
 Usage: aws-export-assume-profile [profile] [config]
        aws-export-assume-profile --unset, -u
-       aws-export-assume-profile --help|-h
-       aws-export-assume-profile --version|-v
+       aws-export-assume-profile --help, -h
+       aws-export-assume-profile --version, -v
 
 This bash helper will output AWS export statements of your chosen aws profile.
 Wrap this script in $(aws-export-assume-profile) to export those environment variables.
@@ -117,7 +119,7 @@ Wrap this script in $(aws-export-assume-profile) to export those environment var
 Optional parameter:
     [profile]      AWS profile name to export. Default is 'default'
     [config]       Path to your aws config file.
-                   If no config file is found, AWS_REGION export will not be available.
+                   If no config file is found, AWS_DEFAULT_REGION export will not be available.
                    Default is ~/.aws/config
 
 Arguments:
@@ -131,9 +133,9 @@ Available exports:
     AWS_SECRET_ACCESS_KEY
     AWS_SECRET_KEY
     AWS_SESSION_TOKEN
-    AWS_DELEGATION_TOKEN (unset only)
+    AWS_DELEGATION_TOKEN
     AWS_SECURITY_TOKEN (unset only)
-    AWS_REGION
+    AWS_DEFAULT_REGION
 
 Examples to show output:
     aws-export-assume-profile testing
@@ -145,6 +147,10 @@ Examples to export:
 
 Examples to unset all AWS variables
     $(aws-export-assume-profile -u)
+
+MIT License
+Copyright (c) 2019 cytopia
+https://github.com/cytopia/aws-export-assume-profile
 ```
 
 ## License
