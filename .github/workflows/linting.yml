@@ -1,0 +1,30 @@
+---
+
+name: linting
+on:
+  pull_request:
+  push:
+    branches:
+      - master
+    tags:
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: False
+      matrix:
+        target:
+          - Linting
+    name: "[ Lint: ${{ matrix.target }} ]"
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Lint files
+        run: |
+          make lint-files
+
+      - name: Lint shell
+        run: |
+          make lint-shell

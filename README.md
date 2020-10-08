@@ -4,7 +4,7 @@
 
 This tool requires `aws` cli and retrieves credentials via `aws sts assume-role`. If you are looking for a way to export profiles already present in `~/.aws/credentials` have a look at **[aws-export-profile](https://github.com/cytopia/aws-export-profile)**.
 
-[![Build Status](https://travis-ci.org/cytopia/aws-export-assume-profile.svg?branch=master)](https://travis-ci.org/cytopia/aws-export-assume-profile)
+[![Build Status](https://github.com/cytopia/aws-export-assume-profile/workflows/linting/badge.svg)](https://github.com/cytopia/aws-export-assume-profile/actions?workflow=linting)
 ![Release](https://img.shields.io/github/release/cytopia/aws-export-assume-profile.svg)
 
 **Note:** Wrap the command in **`$(aws-export-assume-profile)`** to actually export your profiled environment variables.
