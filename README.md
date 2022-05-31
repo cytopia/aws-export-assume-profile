@@ -10,7 +10,7 @@ This tool requires `aws` cli and retrieves credentials via `aws sts assume-role`
 **Note:** Wrap the command in **`$(aws-export-assume-profile)`** to actually export your profiled environment variables.
 
 
-## But why?
+## :question: But why?
 
 Most AWS related tools support profiles out of the box, such as the `aws-cli` (Example: `aws ec2 --profile <AWS_PROFILE>`). However sometimes it is required to have your chosen aws profile available as shell variables. One of the use cases is when you use Docker and want a specific login available inside your container.:
 ```bash
@@ -26,7 +26,7 @@ user> docker run --rm -it \
 ```
 
 
-## Available exports
+## :arrow_forward: Available exports
 
 The following export variables are currently supported.
 
@@ -44,7 +44,14 @@ The following export variables are currently supported.
 > https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-envvars.html
 
 
-## Examples
+
+## :tada: Installation
+```bash
+sudo make install
+```
+
+
+## :bulb: Examples
 
 This tool simply output the exports to stdout. In order to auto-source them, wrap the command in **`$(...)`**.
 
@@ -105,7 +112,7 @@ user> $(aws-export-assume-profile -u)
 ```
 
 
-## Usage
+## :computer: Usage
 
 ```bash
 Usage: aws-export-assume-profile [profile] [config]
@@ -153,7 +160,8 @@ Copyright (c) 2019 cytopia
 https://github.com/cytopia/aws-export-assume-profile
 ```
 
-## License
+
+## :page_facing_up: License
 
 **[MIT License](LICENSE.md)**
 
