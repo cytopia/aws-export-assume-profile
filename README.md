@@ -153,6 +153,12 @@ Copyright (c) 2019 cytopia
 https://github.com/cytopia/aws-export-assume-profile
 ```
 
+## Install
+Clone repo and symlink to your executables
+```shell
+ln -s /path/to/repo/aws-export-assume-profile /usr/local/bin
+```
+
 ## License
 
 **[MIT License](LICENSE.md)**
