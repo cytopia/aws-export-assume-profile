@@ -13,8 +13,8 @@ set -o pipefail
 ###
 ###
 ###
-APP_VERSION="v0.2"
-APP_DATE="2020-10-08"
+APP_VERSION="v0.3"
+APP_DATE="2022-10-11"
 APP_NAME="aws-export-assume-profile"
 
 
@@ -72,6 +72,22 @@ function json_get_key {
 
 
 ###
+### Remove leading and trailing whitespace
+###
+### @param   str  String to trim
+### @outputs      Trimmed string
+###
+function trim {
+    local var="${1}"
+    # remove leading whitespace characters
+    var="${var#"${var%%[![:space:]]*}"}"
+    # remove trailing whitespace characters
+    var="${var%"${var##*[![:space:]]}"}"
+    printf '%s' "${var}"
+}
+
+
+###
 ### Extract AWS profile information
 ###
 ### @param   config  Path to .aws/config
@@ -109,18 +125,22 @@ function extract_aws_profile {
             # Get RoleArn
             if [[ "${line}" =~ ^[[:space:]]*role_arn[[:space:]]*= ]]; then
                 ROLE_ARN="${line#*=}"
+                ROLE_ARN="$( trim "${ROLE_ARN}" )"
             fi
             # Get Source Profile
             if [[ "${line}" =~ ^[[:space:]]*source_profile[[:space:]]*= ]]; then
                 SOURCE_PROFILE="${line#*=}"
+                SOURCE_PROFILE="$( trim "${SOURCE_PROFILE}" )"
             fi
             # Get Region
             if [[ "${line}" =~ ^[[:space:]]*region[[:space:]]*= ]]; then
                 REGION="${line#*=}"
+                REGION="$( trim "${REGION}" )"
             fi
             # Get Login duration
             if [[ "${line}" =~ ^[[:space:]]*duration_seconds[[:space:]]*= ]]; then
                 DURATION_SECONDS="${line#*=}"
+                DURATION_SECONDS="$( trim "${DURATION_SECONDS}" )"
             fi
         fi
     done < "${config}"
