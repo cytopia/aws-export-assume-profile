@@ -13,8 +13,8 @@ set -o pipefail
 ###
 ###
 ###
-APP_VERSION="v0.3"
-APP_DATE="2022-10-11"
+APP_VERSION="v0.4"
+APP_DATE="2023-11-01"
 APP_NAME="aws-export-assume-profile"
 
 
@@ -98,13 +98,13 @@ function extract_aws_profile {
     local config="${1}"
     local profile="${2}"
 
-    local regex_profile_start="^[[:space:]]*\[[[:space:]]*profile[[:space:]][[:space:]]*${profile}[[:space:]]*\]\$"
+    local regex_profile_start="^[[:space:]]*\[[[:space:]]*profile[[:space:]][[:space:]]*${profile}[[:space:]]*\][[:space:]]*\$"
     local regex_profile_end="^[[:space:]]*\["
     local start=0
     local end=0
 
     if [ "${profile}" = "default" ]; then
-        regex_profile_start="^[[:space:]]*\[[[:space:]]*default[[:space:]]*\]\$"
+        regex_profile_start="^[[:space:]]*\[[[:space:]]*default[[:space:]]*\][[:space:]]*\$"
     fi
 
     while read -r line; do
