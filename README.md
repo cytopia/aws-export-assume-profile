@@ -50,6 +50,20 @@ The following export variables are currently supported.
 sudo make install
 ```
 
+### NixOS / Nix
+```bash
+nix profile add github:cytopia/aws-export-assume-profile
+```
+
+### [Devbox](https://www.jetify.com/devbox)
+```bash
+devbox add github:cytopia/aws-export-assume-profile
+devbox add glibcLocales
+# Do a refresh if you are already inside a devbox
+refresh
+```
+
+
 
 ## :bulb: Examples
 
